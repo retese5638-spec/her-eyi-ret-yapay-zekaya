@@ -1,5 +1,7 @@
 # Öğrenen AI - P2P Mesh Network
 
+**Canlı Demo:** [https://retese5638-spec.github.io/her-eyi-ret-yapay-zekaya/](https://retese5638-spec.github.io/her-eyi-ret-yapay-zekaya/)
+
 Bu proje, **hiçbir merkezi sunucu veya API (Google, OpenAI, Supabase vb.) kullanmadan**, kullanıcıların tarayıcıları arasında kurulan **P2P (Eşten Eşe)** bağlantı ile çalışan ortak bir yapay zeka hafızasıdır.
 
 "Kendi bulutunu oluştur" felsefesiyle, siteye giren herkes bulutun bir parçası olur.
@@ -22,14 +24,28 @@ Bu proje **Gun.js** motorunu kullanır.
 *   **Öğrenen Algoritma:** Bilmediği soruları sorar, öğrendiğini asla unutmaz (silinmez).
 *   **Matematik:** İşlemleri yerel işlemci gücüyle yapar.
 
-## 🚀 Kurulum ve Yayınlama
+## 🚀 GitHub Pages'de Nasıl Yayınlanır?
 
-Projeyi GitHub Pages üzerinde yayınlayabilirsiniz. Statik bir site olduğu için sunucu maliyeti yoktur. P2P ağı istemci tarafında çalışır.
+Bu projeyi `https://retese5638-spec.github.io/her-eyi-ret-yapay-zekaya/` adresinde yayınlamak için şu adımları izleyin:
 
-1.  Repoyu klonlayın.
-2.  `npm install`
-3.  `npm run dev` (Test için)
-4.  `npm run build` (Yayınlamak için)
+1.  **Repoyu Oluşturun:** GitHub'da `her-eyi-ret-yapay-zekaya` adında boş bir repo açın.
+2.  **Kodları Yükleyin:**
+    ```bash
+    git init
+    git add .
+    git commit -m "Initial commit"
+    git branch -M main
+    git remote add origin https://github.com/retese5638-spec/her-eyi-ret-yapay-zekaya.git
+    git push -u origin main
+    ```
+3.  **Yayınlama (Deploy):**
+    Projenin `Settings` -> `Pages` kısmına gidin.
+    *   Source: **GitHub Actions** (veya `npm run build` yapıp `dist` klasörünü manuel yüklüyorsanız Branch: `gh-pages` seçin).
+
+    *Alternatif (En Kolay Yöntem):* `gh-pages` paketi ile.
+    1. `npm install gh-pages --save-dev`
+    2. `package.json` dosyasına şunu ekle: `"deploy": "gh-pages -d dist"`
+    3. Terminale yaz: `npm run build && npm run deploy`
 
 ## ⚠️ Notlar
 *   P2P ağı halka açık kanallar kullanır. Hassas verilerinizi (şifre, kimlik vb.) girmeyiniz.
