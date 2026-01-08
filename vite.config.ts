@@ -5,12 +5,16 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
+      // 1. ÖNEMLİ: GitHub Pages alt klasör yolu
+      base: '/her-eyi-ret-yapay-zekaya/', 
+      
       server: {
         port: 3000,
         host: '0.0.0.0',
       },
       plugins: [react()],
       define: {
+        // Eğer GitHub Actions kullanacaksan secrets kısmından çeker
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
       },
