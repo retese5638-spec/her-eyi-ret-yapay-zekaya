@@ -1,20 +1,57 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Öğrenen AI (SQL Simülasyonu)
 
-# Run and deploy your AI Studio app
+Bu proje, harici bir API (OpenAI, Claude vb.) kullanmadan, tamamen tarayıcı hafızasında (**localStorage**) çalışan, kendi kendine öğrenebilen ve SQL benzeri bir veri yapısı kullanan bir React uygulamasıdır.
 
-This contains everything you need to run your app locally.
+![AI Preview](https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000)
 
-View your app in AI Studio: https://ai.studio/apps/drive/17d1sTgC7huR8Q8GOORs-RqQuQuLFnCLM
+## 🌟 Özellikler
 
-## Run Locally
+*   **API Gerektirmez:** Tamamen çevrimdışı (offline) çalışabilir (ilk yükleme hariç).
+*   **Öğrenme Modu:** Bilmediği soruları size sorar, cevabı veritabanına kaydeder ve bir sonraki soruşunuzda hatırlar.
+*   **SQL Simülasyonu:** Arka planda çalışan mantık, SQL sorgularını (SELECT, INSERT) simüle eder ve ekranda gösterir.
+*   **Matematik Motoru:** Basit matematik işlemlerini veritabanında olmasa bile algılar ve hesaplar.
+*   **Kalıcı Hafıza:** Sayfayı yenileseniz bile öğrettiğiniz bilgiler silinmez (LocalStorage).
+*   **Veritabanı Yönetimi:** Sol panelden tüm bilgileri görebilir, düzenleyebilir, silebilir veya yeni veri ekleyebilirsiniz.
 
-**Prerequisites:**  Node.js
+## 🚀 Kurulum ve Çalıştırma
 
+Bu projeyi bilgisayarınızda çalıştırmak için:
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1.  Depoyu klonlayın:
+    ```bash
+    git clone https://github.com/kullaniciadi/ogrenen-ai-sql.git
+    ```
+2.  Klasöre gidin:
+    ```bash
+    cd ogrenen-ai-sql
+    ```
+3.  Bağımlılıkları yükleyin:
+    ```bash
+    npm install
+    ```
+4.  Projeyi başlatın:
+    ```bash
+    npm run dev
+    ```
+
+## 🌐 GitHub Pages'de Yayınlama
+
+Bu projeyi internette yayınlamak için:
+
+1.  `vite.config.ts` dosyasındaki `base: './'` ayarının olduğundan emin olun.
+2.  Projeyi derleyin:
+    ```bash
+    npm run build
+    ```
+3.  `dist` klasöründeki içeriği bir sunucuya veya GitHub Pages'e yükleyin.
+
+## 🛠 Teknolojiler
+
+*   React 18
+*   TypeScript
+*   Tailwind CSS
+*   Vite
+*   Lucide React (İkonlar)
+
+---
+*Bu proje eğitim ve simülasyon amaçlı geliştirilmiştir.*
