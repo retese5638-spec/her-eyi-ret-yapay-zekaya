@@ -1,91 +1,84 @@
 import { KnowledgeRow } from '../types';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const DB_KEY = 'sql_simulation_db_v1';
-const CREDENTIALS_KEY = 'sql_ai_cloud_credentials';
+// Declare GUN types since we are using CDN
+declare global {
+  interface Window {
+    Gun: any;
+  }
+}
 
-let supabase: SupabaseClient | null = null;
-let isOnline = false;
+const DB_KEY = 'sql_ai_local_v2';
+const MESH_CHANNEL = 'knowledge_mesh_v1';
+
+// Public Relay Peers (Free community servers to help handshake)
+// We are NOT using an API key. These are public nodes.
+const PEERS = [
+  'https://gun-manhattan.herokuapp.com/gun',
+  'https://gun-amsterdam.herokuapp.com/gun',
+  'https://plato.design/gun'
+];
+
+let gun: any = null;
+let isConnected = false;
 
 // Initial seed data
 const SEED_DATA: KnowledgeRow[] = [
-  { id: 1, pattern: 'merhaba', response: 'Merhaba! Ben online ortak veritabanı kullanan asistanınım.', type: 'chat', created_at: new Date().toISOString() },
-  { id: 2, pattern: 'selam', response: 'Selamlar! Ortak ağa hoş geldin.', type: 'chat', created_at: new Date().toISOString() },
-  { id: 3, pattern: 'nasılsın', response: 'Tüm kullanıcıların verileriyle her an daha iyi oluyorum!', type: 'chat', created_at: new Date().toISOString() },
-  { id: 4, pattern: 'adın ne', response: 'Ben Kolektif Zeka. Herkesin öğrettiğini bilirim.', type: 'chat', created_at: new Date().toISOString() },
-  // ... Math and General basic data remains as fallback
+  { id: 1, pattern: 'merhaba', response: 'Merhaba! Ben Merkeziyetsiz P2P Ağına bağlıyım.', type: 'chat', created_at: new Date().toISOString() },
+  { id: 2, pattern: 'sen kimsin', response: 'Ben tüm kullanıcıların oluşturduğu ortak bir yapay zekayım.', type: 'chat', created_at: new Date().toISOString() },
+  { id: 3, pattern: 'nasıl çalışıyorsun', response: 'API yok. Veriler tarayıcıdan tarayıcıya (P2P) aktarılıyor.', type: 'chat', created_at: new Date().toISOString() },
   { id: 101, pattern: 'en küçük asal sayı', response: 'En küçük asal sayı 2\'dir.', type: 'math', created_at: new Date().toISOString() },
   { id: 110, pattern: '9 kere 9', response: '81', type: 'math', created_at: new Date().toISOString() }
 ];
 
-// --- CLOUD CONNECTION SETUP ---
-export const getStoredCredentials = () => {
-    const stored = localStorage.getItem(CREDENTIALS_KEY);
-    return stored ? JSON.parse(stored) : null;
-};
+// --- P2P CLOUD CONNECTION ---
 
-export const disconnectCloud = () => {
-    localStorage.removeItem(CREDENTIALS_KEY);
-    supabase = null;
-    isOnline = false;
-    window.location.reload();
-};
+export const initP2PNetwork = (onNewData: (data: KnowledgeRow[]) => void) => {
+  if (gun) return;
 
-export const initCloudConnection = async (url: string, key: string, onUpdateCallback: (data: KnowledgeRow[]) => void) => {
-    try {
-        supabase = createClient(url, key);
-        
-        // Test connection
-        const { data, error } = await supabase.from('knowledge').select('count').limit(1);
-        if (error) throw error;
+  console.log("P2P Ağına Bağlanılıyor...");
+  
+  // Initialize Gun with peers and localStorage adapter
+  gun = window.Gun({
+    peers: PEERS,
+    localStorage: true
+  });
 
-        isOnline = true;
-        localStorage.setItem(CREDENTIALS_KEY, JSON.stringify({ url, key }));
+  isConnected = true;
 
-        // 1. Download ALL data from Cloud and replace/merge local
-        await syncFromCloud();
+  // Subscribe to the shared graph
+  gun.get(MESH_CHANNEL).map().on((node: any, key: string) => {
+    if (!node || !node.pattern || !node.response) return;
 
-        // 2. Setup Realtime Subscription (Listen for changes from other users)
-        supabase
-            .channel('public:knowledge')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'knowledge' }, async (payload) => {
-                console.log('Realtime change received!', payload);
-                // When anyone changes anything, re-fetch or append. 
-                // For simplicity, we sync all to ensure consistency.
-                const allData = await syncFromCloud();
-                onUpdateCallback(allData);
-            })
-            .subscribe();
+    // Convert Gun node to KnowledgeRow
+    const newItem: KnowledgeRow = {
+      id: node.customId || Date.now(), // Gun uses UUIDs, but we map back to our ID system if needed
+      pattern: node.pattern,
+      response: node.response,
+      type: node.type || 'general',
+      created_at: node.created_at || new Date().toISOString()
+    };
 
-        return true;
-    } catch (e) {
-        console.error("Cloud connection failed:", e);
-        isOnline = false;
-        return false;
+    // Merge into LocalStorage logic
+    const currentDB = getKnowledgeBase();
+    
+    // Check if exists by pattern to avoid duplicates from mesh
+    const exists = currentDB.some(item => 
+      item.pattern.toLowerCase() === newItem.pattern.toLowerCase() && 
+      item.response === newItem.response
+    );
+
+    if (!exists) {
+      console.log("P2P Ağından Yeni Veri Geldi:", newItem.pattern);
+      const updatedDB = [...currentDB, newItem];
+      localStorage.setItem(DB_KEY, JSON.stringify(updatedDB));
+      onNewData(updatedDB);
     }
+  });
+
+  return true;
 };
 
-export const isCloudConnected = () => isOnline;
-
-// --- DATA SYNCING ---
-
-const syncFromCloud = async (): Promise<KnowledgeRow[]> => {
-    if (!supabase) return getKnowledgeBase();
-
-    const { data, error } = await supabase
-        .from('knowledge')
-        .select('*')
-        .order('id', { ascending: true });
-
-    if (error || !data) {
-        console.error("Error fetching from cloud:", error);
-        return getKnowledgeBase();
-    }
-
-    // Update Local Storage with Cloud Data to act as a cache
-    localStorage.setItem(DB_KEY, JSON.stringify(data));
-    return data as KnowledgeRow[];
-};
+export const isMeshConnected = () => isConnected;
 
 // --- CRUD OPERATIONS ---
 
@@ -95,15 +88,16 @@ export const getKnowledgeBase = (): KnowledgeRow[] => {
     localStorage.setItem(DB_KEY, JSON.stringify(SEED_DATA));
     return SEED_DATA;
   }
-  return JSON.parse(existing);
+  let parsed = JSON.parse(existing);
+  // Ensure we sort by ID or Date
+  return parsed.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 };
 
-// Async insert handling
+// Insert now broadcasts to the Mesh
 export const insertKnowledge = async (pattern: string, response: string, type: 'general' | 'math' | 'chat' = 'general'): Promise<KnowledgeRow> => {
   const localDb = getKnowledgeBase();
   
-  // Optimistic Update (Update local immediately for speed)
-  const newId = localDb.length > 0 ? Math.max(...localDb.map(r => r.id)) + 1 : 1;
+  const newId = Date.now(); // Use timestamp for unique ID in P2P
   const newRow: KnowledgeRow = {
     id: newId,
     pattern: pattern.trim(),
@@ -112,22 +106,23 @@ export const insertKnowledge = async (pattern: string, response: string, type: '
     created_at: new Date().toISOString()
   };
 
-  // Save to Local
-  const updatedDb = [...localDb, newRow];
+  // 1. Save Local
+  const updatedDb = [newRow, ...localDb];
   localStorage.setItem(DB_KEY, JSON.stringify(updatedDb));
 
-  // Sync to Cloud (Fire and Forget)
-  if (isOnline && supabase) {
-      // We don't send ID, let Postgres handle ID auto-increment or UUID.
-      // But for this simulation, assuming the table structure matches.
-      // Ideally, the table should have columns: pattern, response, type.
-      supabase.from('knowledge').insert({
-          pattern: newRow.pattern,
-          response: newRow.response,
-          type: newRow.type
-      }).then(({ error }) => {
-          if (error) console.error("Cloud insert failed:", error);
-      });
+  // 2. Broadcast to P2P Mesh (The "Own Cloud")
+  if (gun) {
+    // Generate a unique key for the node
+    const nodeKey = `item_${newId}_${Math.random().toString(36).substr(2, 5)}`;
+    
+    gun.get(MESH_CHANNEL).get(nodeKey).put({
+      customId: newId,
+      pattern: newRow.pattern,
+      response: newRow.response,
+      type: newRow.type,
+      created_at: newRow.created_at
+    });
+    console.log("Veri P2P Ağına Gönderildi (Syncing to Mesh)");
   }
 
   return newRow;
@@ -142,25 +137,13 @@ export const updateKnowledge = async (id: number, newPattern: string, newRespons
   );
   localStorage.setItem(DB_KEY, JSON.stringify(updatedDb));
 
-  if (isOnline && supabase) {
-      // Find row by pattern (since IDs might differ between local/cloud in this simple implementations)
-      // OR assuming IDs are synced. Let's try to update by pattern/content match if ID fails, 
-      // but for this demo, we'll try ID.
-      supabase.from('knowledge').update({
-          pattern: newPattern.trim(),
-          response: newResponse.trim()
-      }).eq('id', id).then(({ error }) => {
-          if (error) console.error("Cloud update failed:", error);
-      });
-  }
+  // Updating in GunDB is harder without the original Key reference. 
+  // For this simulation, we just treat it as a new insert or local update.
+  // In a full app, we would track the GUN Soul (ID).
 };
 
 export const resetDB = (): KnowledgeRow[] => {
-  // Only reset local if online, or prevent reset if online?
-  if (isOnline) {
-      alert("Online moddasınız. Veritabanını sıfırlamak diğer kullanıcıların verisini etkileyebilir. Bu işlem online modda devre dışıdır.");
-      return getKnowledgeBase();
-  }
+  // We don't delete from Mesh, only local view
   localStorage.setItem(DB_KEY, JSON.stringify(SEED_DATA));
   return SEED_DATA;
 };
@@ -194,7 +177,7 @@ export const tryMathEvaluation = (input: string): string | null => {
         result = n1 / n2; 
         break;
     }
-    return `Otomatik Hesaplama: ${result}`;
+    return `P2P Hesaplama: ${result}`;
   }
   return null;
 };

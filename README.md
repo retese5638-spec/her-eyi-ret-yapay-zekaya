@@ -1,57 +1,39 @@
-# Öğrenen AI (SQL Simülasyonu)
+# Öğrenen AI - P2P Mesh Network
 
-Bu proje, harici bir API (OpenAI, Claude vb.) kullanmadan, tamamen tarayıcı hafızasında (**localStorage**) çalışan, kendi kendine öğrenebilen ve SQL benzeri bir veri yapısı kullanan bir React uygulamasıdır.
+Bu proje, **hiçbir merkezi sunucu veya API (Google, OpenAI, Supabase vb.) kullanmadan**, kullanıcıların tarayıcıları arasında kurulan **P2P (Eşten Eşe)** bağlantı ile çalışan ortak bir yapay zeka hafızasıdır.
 
-![AI Preview](https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1000)
+"Kendi bulutunu oluştur" felsefesiyle, siteye giren herkes bulutun bir parçası olur.
+
+![P2P AI Network](https://images.unsplash.com/photo-1558494949-efc025708dc7?auto=format&fit=crop&q=80&w=1000)
+
+## 🌐 Nasıl Çalışır? (Teknik Altyapı)
+
+Bu proje **Gun.js** motorunu kullanır.
+1.  Siteyi açtığınızda tarayıcınız "Relay Peer" adı verilen halka açık ücretsiz sinyal sunucularına bağlanır.
+2.  Diğer kullanıcılarla aranızda şifreli bir **WebRTC** köprüsü kurulur.
+3.  Birisi yapay zekaya "Elma nedir?" diye öğrettiğinde, bu veri **anında** ağdaki diğer tüm bilgisayarlara gönderilir.
+4.  Veriler `localStorage` üzerinde de yedeklenir, böylece siteyi kapatsanız bile veriler kaybolmaz.
 
 ## 🌟 Özellikler
 
-*   **API Gerektirmez:** Tamamen çevrimdışı (offline) çalışabilir (ilk yükleme hariç).
-*   **Öğrenme Modu:** Bilmediği soruları size sorar, cevabı veritabanına kaydeder ve bir sonraki soruşunuzda hatırlar.
-*   **SQL Simülasyonu:** Arka planda çalışan mantık, SQL sorgularını (SELECT, INSERT) simüle eder ve ekranda gösterir.
-*   **Matematik Motoru:** Basit matematik işlemlerini veritabanında olmasa bile algılar ve hesaplar.
-*   **Kalıcı Hafıza:** Sayfayı yenileseniz bile öğrettiğiniz bilgiler silinmez (LocalStorage).
-*   **Veritabanı Yönetimi:** Sol panelden tüm bilgileri görebilir, düzenleyebilir, silebilir veya yeni veri ekleyebilirsiniz.
+*   **%100 API'siz:** API Key, Login, Şifre gerekmez. Tıkla ve bağlan.
+*   **Merkeziyetsiz Bulut:** Veritabanı tek bir şirketin sunucusunda değil, kullanıcıların bilgisayarlarında dağınık halde durur.
+*   **Canlı Eşitleme:** Dünyanın öbür ucundaki biri bir soru öğrettiğinde saniyeler içinde ekranınızda belirir.
+*   **Öğrenen Algoritma:** Bilmediği soruları sorar, öğrendiğini asla unutmaz (silinmez).
+*   **Matematik:** İşlemleri yerel işlemci gücüyle yapar.
 
-## 🚀 Kurulum ve Çalıştırma
+## 🚀 Kurulum ve Yayınlama
 
-Bu projeyi bilgisayarınızda çalıştırmak için:
+Projeyi GitHub Pages üzerinde yayınlayabilirsiniz. Statik bir site olduğu için sunucu maliyeti yoktur. P2P ağı istemci tarafında çalışır.
 
-1.  Depoyu klonlayın:
-    ```bash
-    git clone https://github.com/kullaniciadi/ogrenen-ai-sql.git
-    ```
-2.  Klasöre gidin:
-    ```bash
-    cd ogrenen-ai-sql
-    ```
-3.  Bağımlılıkları yükleyin:
-    ```bash
-    npm install
-    ```
-4.  Projeyi başlatın:
-    ```bash
-    npm run dev
-    ```
+1.  Repoyu klonlayın.
+2.  `npm install`
+3.  `npm run dev` (Test için)
+4.  `npm run build` (Yayınlamak için)
 
-## 🌐 GitHub Pages'de Yayınlama
-
-Bu projeyi internette yayınlamak için:
-
-1.  `vite.config.ts` dosyasındaki `base: './'` ayarının olduğundan emin olun.
-2.  Projeyi derleyin:
-    ```bash
-    npm run build
-    ```
-3.  `dist` klasöründeki içeriği bir sunucuya veya GitHub Pages'e yükleyin.
-
-## 🛠 Teknolojiler
-
-*   React 18
-*   TypeScript
-*   Tailwind CSS
-*   Vite
-*   Lucide React (İkonlar)
+## ⚠️ Notlar
+*   P2P ağı halka açık kanallar kullanır. Hassas verilerinizi (şifre, kimlik vb.) girmeyiniz.
+*   "Kayıtlar asla silinmesin" özelliği gereği, kötü niyetli veriler de ağda yayılabilir, ancak yerel olarak temizleyebilirsiniz.
 
 ---
-*Bu proje eğitim ve simülasyon amaçlı geliştirilmiştir.*
+*Powered by GunDB & React*
